@@ -8,7 +8,10 @@ authors = [
     { name = "Diachenko Viktor", email = "code@techbedo.dev" }
 ]
 dependencies = [
-  "flet==0.28.3"
+  "flet==0.28.3",
+  "requests>=2.31.0",
+  "aiohttp>=3.9.0",
+  "python-dateutil>=2.8.0"
 ]
 
 [tool.flet]

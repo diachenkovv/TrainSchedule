@@ -1,0 +1,19 @@
+{
+  "theme_mode": "system",
+  "font_size": 13,
+  "enable_animations": true,
+  "enable_sounds": false,
+  "use_real_api": true,
+  "api_config": {
+    "base_url": "https://booking.uz.gov.ua/",
+    "timeout": 30,
+    "user_agent": "TrainSchedule/1.0"
+  },
+  "ui_config": {
+    "colors": {
+      "light_theme": "#213685",
+      "dark_theme": "#3591E4"
+    }
+  },
+  "language": "uk"
+}
