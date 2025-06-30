@@ -12,17 +12,26 @@ class SettingsView:
         # Завантажуємо поточні налаштування
         self.current_settings = self.settings_service.load_settings()
         
-        # Кнопка збереження (без badge)
+        # Кнопка збереження з badge
         self.save_button = ft.ElevatedButton(
             text="Зберегти налаштування",
             icon=ft.Icons.SAVE,
             on_click=self._save_all_settings,
             style=ft.ButtonStyle(
-                bgcolor=ft.Colors.GREY_400,
+                bgcolor=ft.Colors.GREEN_400,
                 color=ft.Colors.WHITE,
                 shape=ft.RoundedRectangleBorder(radius=10)
             ),
             disabled=True  # Спочатку неактивна
+        )
+        
+        self.save_badge = ft.Container(
+            content=ft.Icon(ft.Icons.CIRCLE, size=8, color=ft.Colors.RED),
+            width=12,
+            height=12,
+            border_radius=6,
+            bgcolor=ft.Colors.RED,
+            visible=False  # Badge зникає/з'являється
         )
         
         self.theme_mode_dropdown = ft.Dropdown(
@@ -161,30 +170,26 @@ class SettingsView:
         """Оновлення стану кнопки збереження"""
         has_changes = self.settings_service.has_changes()
         self.save_button.disabled = not has_changes  # Активна лише при наявності змін
-        self.save_button.style = ft.ButtonStyle(
-            bgcolor=ft.Colors.GREEN_400 if has_changes else ft.Colors.GREY_400,
-            color=ft.Colors.WHITE,
-            shape=ft.RoundedRectangleBorder(radius=10)
-        )
+        self.save_badge.visible = has_changes  # Badge показується при змінах
         self.page.update()
-        if self.on_settings_changed and not getattr(self, 'suppress_callback', False):
+        if self.on_settings_changed and not getattr(self, 'suppress_callback', False) and not suppress_callback:
             self.on_settings_changed()
 
     def _save_all_settings(self, e):
         """Збереження всіх налаштувань та оновлення додатку"""
+        # Отримуємо нову тему перед збереженням
         new_theme = self.settings_service.pending_changes.get("theme_mode")
+        
         success = self.settings_service.save_pending_changes()
         if success:
-            self.save_button.disabled = True  # Кнопка стає неактивною після збереження
-            self.save_button.style = ft.ButtonStyle(
-                bgcolor=ft.Colors.GREY_400,
-                color=ft.Colors.WHITE,
-                shape=ft.RoundedRectangleBorder(radius=10)
-            )
-            if self.on_settings_changed:
-                self.on_settings_changed()
+            self.save_button.disabled = True  # Відключаємо кнопку
+            self.save_badge.visible = False   # Ховаємо badge
+            
+            # Застосовуємо тему після збереження, якщо вона була змінена
             if new_theme:
                 self._apply_theme_change(new_theme)
+            
+            # Показуємо повідомлення про успішне збереження
             snackbar = ft.SnackBar(
                 content=ft.Text("Налаштування збережено! Тема оновлена."),
                 bgcolor=ft.Colors.GREEN_400,
@@ -203,45 +208,32 @@ class SettingsView:
             self.page.update()
 
     def _reset_settings(self, e: ft.ControlEvent):
-        """Підтвердження скидання налаштувань через Modal Dialog"""
-        def on_confirm(ev):
-            self.theme_mode_dropdown.value = "light"
-            self.font_size_slider.value = 14
-            self.enable_animations_switch.value = True
-            self.enable_sounds_switch.value = False
-            self.use_real_api_switch.value = False
-            self.page.theme_mode = ft.ThemeMode.LIGHT
-            theme_color = self._get_theme_color()
-            self.page.theme = ft.Theme(
-                color_scheme_seed=theme_color,
-                use_material3=True
-            )
-            self.settings_service.discard_pending_changes()
-            self.settings_service.reset_settings()
-            self.save_button.disabled = True
-            self.save_button.style = ft.ButtonStyle(
-                bgcolor=ft.Colors.GREY_400,
-                color=ft.Colors.WHITE,
-                shape=ft.RoundedRectangleBorder(radius=10)
-            )
-            if self.on_settings_changed:
-                self.on_settings_changed()
-            self.page.dialog.open = False
-            self.page.update()
-        def on_cancel(ev):
-            self.page.dialog.open = False
-            self.page.update()
-        self.page.dialog = ft.AlertDialog(
-            modal=True,
-            title=ft.Text("Скинути налаштування?", weight=ft.FontWeight.BOLD),
-            content=ft.Text("Ви дійсно бажаєте скинути всі налаштування до стандартних?"),
-            actions=[
-                ft.TextButton("Скасувати", on_click=on_cancel),
-                ft.TextButton("Скинути", on_click=on_confirm)
-            ],
-            actions_alignment=ft.MainAxisAlignment.END
+        """Скидання налаштувань до значень за замовчуванням"""
+        self.theme_mode_dropdown.value = "light"
+        self.font_size_slider.value = 14
+        self.enable_animations_switch.value = True
+        self.enable_sounds_switch.value = False
+        self.use_real_api_switch.value = False
+        
+        # Застосовуємо зміни теми
+        self.page.theme_mode = ft.ThemeMode.LIGHT
+        
+        # Визначаємо колір теми після встановлення theme_mode
+        theme_color = self._get_theme_color()
+        
+        # Оновлюємо тему з відповідним акцентним кольором
+        self.page.theme = ft.Theme(
+            color_scheme_seed=theme_color,
+            use_material3=True
         )
-        self.page.dialog.open = True
+        
+        # Скидаємо незбережені зміни та зберігаємо налаштування
+        self.settings_service.discard_pending_changes()
+        self.settings_service.reset_settings()
+        self.save_button.disabled = True  # Відключаємо кнопку
+        self.save_badge.visible = False   # Ховаємо badge
+        
+        # Оновлюємо сторінку
         self.page.update()
 
     def _discard_changes(self):
@@ -262,13 +254,11 @@ class SettingsView:
         # Скидаємо незбережені зміни
         self.settings_service.discard_pending_changes()
         self.save_button.disabled = True
-        
+        self.save_badge.visible = False
         self.page.update()
 
     def build(self):
         theme_color = self._get_theme_color()
-        # Просто кнопка без Stack
-        save_btn = self.save_button
         return ft.Container(
             content=ft.Column([
                 # Заголовок
@@ -328,12 +318,42 @@ class SettingsView:
                                 ft.Text("Поведінка додатку", size=18, weight=ft.FontWeight.BOLD, color=theme_color)
                             ], spacing=10),
                             ft.Divider(height=1),
+                            
                             # Анімації
-                            self.enable_animations_switch,
+                            ft.Row([
+                                ft.Icon(ft.Icons.ANIMATION),
+                                ft.Container(
+                                    content=ft.Row([
+                                        self.enable_animations_switch,
+                                        ft.Text("Анімації інтерфейсу", size=14)
+                                    ], spacing=10),
+                                    expand=True
+                                )
+                            ], spacing=15),
+                            
                             # Звуки
-                            self.enable_sounds_switch,
+                            ft.Row([
+                                ft.Icon(ft.Icons.VOLUME_UP),
+                                ft.Container(
+                                    content=ft.Row([
+                                        self.enable_sounds_switch,
+                                        ft.Text("Звукові сповіщення", size=14)
+                                    ], spacing=10),
+                                    expand=True
+                                )
+                            ], spacing=15),
+                            
                             # Джерело даних
-                            self.use_real_api_switch,
+                            ft.Row([
+                                ft.Icon(ft.Icons.CLOUD),
+                                ft.Container(
+                                    content=ft.Row([
+                                        self.use_real_api_switch,
+                                        ft.Text("Реальні дані УЗ", size=14)
+                                    ], spacing=10),
+                                    expand=True
+                                )
+                            ], spacing=15),
                         ], spacing=15),
                         padding=ft.padding.all(20)
                     ),
@@ -350,9 +370,21 @@ class SettingsView:
                                 ft.Text("Дії", size=18, weight=ft.FontWeight.BOLD, color=theme_color)
                             ], spacing=10),
                             ft.Divider(height=1),
+                            
                             # Всі кнопки в одному рядку
                             ft.Row([
-                                save_btn,
+                                # Кнопка збереження з badge
+                                ft.Container(
+                                    content=ft.Stack([
+                                        self.save_button,
+                                        ft.Container(
+                                            content=self.save_badge,
+                                            right=0,
+                                            top=0
+                                        )
+                                    ]),
+                                    expand=True
+                                ),
                                 ft.ElevatedButton(
                                     text="Скинути",
                                     icon=ft.Icons.RESTORE,
