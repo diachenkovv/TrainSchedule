@@ -30,6 +30,10 @@ class TrainNumberView:
         )
         self.results_container = ft.Container()
         
+        # Елементи, які будуть створені в build() та потребують оновлення теми
+        self.search_button = None
+        self.title_text = None
+        
         # Додаємо DatePicker до сторінки
         self.page.overlay.append(self.search_date)
 
@@ -318,6 +322,39 @@ class TrainNumberView:
             *station_cards
         ], spacing=5)
 
+    def update_theme(self):
+        """Оновлює кольори елементів відповідно до поточної теми"""
+        theme_color = self._get_theme_color()
+        
+        # Оновлюємо кнопку пошуку
+        if self.search_button:
+            self.search_button.style = ft.ButtonStyle(
+                bgcolor=theme_color,
+                color=ft.Colors.WHITE,
+                padding=ft.padding.symmetric(horizontal=30, vertical=15),
+                shape=ft.RoundedRectangleBorder(radius=10)
+            )
+        
+        # Оновлюємо заголовок
+        if self.title_text:
+            self.title_text.color = theme_color
+        
+        # Оновлюємо результати, якщо вони є
+        if self.results_container.content and hasattr(self.results_container.content, 'controls'):
+            self._refresh_results()
+
+    def _refresh_results(self):
+        """Оновлює результати пошуку з новими кольорами теми"""
+        if hasattr(self.results_container.content, 'controls') and self.results_container.content.controls:
+            # Якщо є результати, регенеруємо їх з новими кольорами
+            train_number = self.train_number.value or "143"
+            result = self._generate_mock_train_info()
+            self.results_container.content = ft.Column([
+                ft.Text(f"Інформація про поїзд № {train_number}", 
+                       size=18, weight=ft.FontWeight.BOLD),
+                result
+            ], spacing=10)
+
     def _get_theme_color(self):
         """Повертає колір залежно від поточної теми"""
         if self.page.theme_mode == ft.ThemeMode.DARK:
@@ -328,13 +365,30 @@ class TrainNumberView:
     def build(self):
         theme_color = self._get_theme_color()
         
+        # Створюємо заголовок з посиланням для оновлення
+        self.title_text = ft.Text("Пошук за номером поїзда", size=20, weight=ft.FontWeight.BOLD, color=theme_color)
+        
+        # Створюємо кнопку пошуку з посиланням для оновлення
+        self.search_button = ft.ElevatedButton(
+            text="Знайти поїзд",
+            icon=ft.Icons.SEARCH,
+            on_click=self._search_train,
+            style=ft.ButtonStyle(
+                bgcolor=theme_color,
+                color=ft.Colors.WHITE,
+                padding=ft.padding.symmetric(horizontal=30, vertical=15),
+                shape=ft.RoundedRectangleBorder(radius=10)
+            ),
+            height=50
+        )
+        
         return ft.Container(
             content=ft.Column([
                 # Форма пошуку
                 ft.Card(
                     content=ft.Container(
                         content=ft.Column([
-                            ft.Text("Пошук за номером поїзда", size=20, weight=ft.FontWeight.BOLD, color=theme_color),
+                            self.title_text,
                             ft.Divider(),
                             
                             # Номер поїзда
@@ -350,18 +404,7 @@ class TrainNumberView:
                             
                             # Кнопка пошуку
                             ft.Container(
-                                ft.ElevatedButton(
-                                    text="Знайти поїзд",
-                                    icon=ft.Icons.SEARCH,
-                                    on_click=self._search_train,
-                                    style=ft.ButtonStyle(
-                                        bgcolor=theme_color,  # Автоматичний колір
-                                        color=ft.Colors.WHITE,    # Автоматичний колір тексту
-                                        padding=ft.padding.symmetric(horizontal=30, vertical=15),
-                                        shape=ft.RoundedRectangleBorder(radius=10)
-                                    ),
-                                    height=50
-                                ),
+                                self.search_button,
                                 alignment=ft.alignment.center,
                                 margin=ft.margin.only(top=20)
                             ),

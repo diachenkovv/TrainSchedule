@@ -5,6 +5,9 @@ from datetime import datetime, timedelta
 class RouteSearchView:
     def __init__(self, page: ft.Page):
         self.page = page
+        # Збережемо посилання на елементи, які потребують оновлення теми
+        self.theme_dependent_elements = []
+        
         self.departure_station = ft.TextField(
             label="Станція відправлення",
             hint_text="Введіть назву станції",
@@ -46,8 +49,49 @@ class RouteSearchView:
         )
         self.results_container = ft.Container()
         
+        # Елементи, які будуть створені в build() та потребують оновлення теми
+        self.search_button = None
+        self.title_text = None
+        self.swap_button = None
+        
         # Додаємо DatePicker до сторінки
         self.page.overlay.append(self.departure_date)
+
+    def update_theme(self):
+        """Оновлює кольори елементів відповідно до поточної теми"""
+        theme_color = self._get_theme_color()
+        
+        # Оновлюємо кнопку пошуку
+        if self.search_button:
+            self.search_button.style = ft.ButtonStyle(
+                bgcolor=theme_color,
+                color=ft.Colors.WHITE,
+                padding=ft.padding.symmetric(horizontal=30, vertical=15),
+                shape=ft.RoundedRectangleBorder(radius=10)
+            )
+        
+        # Оновлюємо заголовок
+        if self.title_text:
+            self.title_text.color = theme_color
+            
+        # Оновлюємо кнопку swap
+        if self.swap_button:
+            self.swap_button.icon_color = theme_color
+            
+        # Оновлюємо результати, якщо вони є
+        if self.results_container.content:
+            self._refresh_results()
+
+    def _refresh_results(self):
+        """Оновлює результати пошуку з новими кольорами теми"""
+        if hasattr(self.results_container.content, 'controls') and self.results_container.content.controls:
+            # Якщо є результати, регенеруємо їх з новими кольорами
+            results = self._generate_mock_results()
+            self.results_container.content = ft.Column([
+                ft.Text("Знайдені маршрути:", size=18, weight=ft.FontWeight.BOLD),
+                *results
+            ], spacing=10)
+        self.page.update()
 
     def _on_date_change(self, e):
         if self.departure_date.value:
@@ -236,26 +280,46 @@ class RouteSearchView:
     def build(self):
         theme_color = self._get_theme_color()
         
+        # Створюємо заголовок з посиланням для оновлення
+        self.title_text = ft.Text("Пошук маршруту", size=20, weight=ft.FontWeight.BOLD, color=theme_color)
+        
+        # Створюємо кнопку swap з посиланням для оновлення
+        self.swap_button = ft.IconButton(
+            icon=ft.Icons.SWAP_VERT,
+            tooltip="Поміняти місцями",
+            on_click=self._swap_stations,
+            icon_color=theme_color,
+            bgcolor=None
+        )
+        
+        # Створюємо кнопку пошуку з посиланням для оновлення
+        self.search_button = ft.ElevatedButton(
+            text="Знайти маршрути",
+            icon=ft.Icons.SEARCH,
+            on_click=self._search_routes,
+            style=ft.ButtonStyle(
+                bgcolor=theme_color,
+                color=ft.Colors.WHITE,
+                padding=ft.padding.symmetric(horizontal=30, vertical=15),
+                shape=ft.RoundedRectangleBorder(radius=10)
+            ),
+            height=50
+        )
+        
         return ft.Container(
             content=ft.Column([
                 # Форма пошуку
                 ft.Card(
                     content=ft.Container(
                         content=ft.Column([
-                            ft.Text("Пошук маршруту", size=20, weight=ft.FontWeight.BOLD, color=theme_color),
+                            self.title_text,
                             ft.Divider(),
                             
                             # Станції
                             ft.Row([
                                 ft.Container(self.departure_station, expand=True),
                                 ft.Container(
-                                    ft.IconButton(
-                                        icon=ft.Icons.SWAP_VERT,
-                                        tooltip="Поміняти місцями",
-                                        on_click=self._swap_stations,
-                                        icon_color=theme_color,
-                                        bgcolor=None
-                                    ),
+                                    self.swap_button,
                                     alignment=ft.alignment.center
                                 ),
                                 ft.Container(self.arrival_station, expand=True)
@@ -275,18 +339,7 @@ class RouteSearchView:
                             
                             # Кнопка пошуку
                             ft.Container(
-                                ft.ElevatedButton(
-                                    text="Знайти маршрути",
-                                    icon=ft.Icons.SEARCH,
-                                    on_click=self._search_routes,
-                                    style=ft.ButtonStyle(
-                                        bgcolor=theme_color,
-                                        color=ft.Colors.WHITE,
-                                        padding=ft.padding.symmetric(horizontal=30, vertical=15),
-                                        shape=ft.RoundedRectangleBorder(radius=10)
-                                    ),
-                                    height=50
-                                ),
+                                self.search_button,
                                 alignment=ft.alignment.center,
                                 margin=ft.margin.only(top=20)
                             )

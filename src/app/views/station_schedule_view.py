@@ -44,6 +44,10 @@ class StationScheduleView:
         )
         self.results_container = ft.Container()
         
+        # Елементи, які будуть створені в build() та потребують оновлення теми
+        self.search_button = None
+        self.title_text = None
+        
         # Додаємо DatePicker до сторінки
         self.page.overlay.append(self.schedule_date)
 
@@ -263,6 +267,40 @@ class StationScheduleView:
         
         return result_cards
 
+    def update_theme(self):
+        """Оновлює кольори елементів відповідно до поточної теми"""
+        theme_color = self._get_theme_color()
+        
+        # Оновлюємо кнопку пошуку
+        if self.search_button:
+            self.search_button.style = ft.ButtonStyle(
+                bgcolor=theme_color,
+                color=ft.Colors.WHITE,
+                padding=ft.padding.symmetric(horizontal=30, vertical=15),
+                shape=ft.RoundedRectangleBorder(radius=10)
+            )
+        
+        # Оновлюємо заголовок
+        if self.title_text:
+            self.title_text.color = theme_color
+        
+        # Оновлюємо результати, якщо вони є
+        if self.results_container.content and hasattr(self.results_container.content, 'controls'):
+            self._refresh_results()
+
+    def _refresh_results(self):
+        """Оновлює результати пошуку з новими кольорами теми"""
+        if hasattr(self.results_container.content, 'controls') and self.results_container.content.controls:
+            # Якщо є результати, регенеруємо їх з новими кольорами
+            results = self._generate_mock_schedule()
+            self.results_container.content = ft.Column([
+                ft.Text(f"Розклад станції '{self.station_name.value or 'Київ-Пасажирський'}'", 
+                       size=18, weight=ft.FontWeight.BOLD),
+                ft.Text(f"на {self.date_button.text}", size=14),
+                ft.Divider(),
+                *results
+            ], spacing=10)
+
     def _get_theme_color(self):
         """Повертає колір залежно від поточної теми"""
         if self.page.theme_mode == ft.ThemeMode.DARK:
@@ -273,13 +311,30 @@ class StationScheduleView:
     def build(self):
         theme_color = self._get_theme_color()
         
+        # Створюємо заголовок з посиланням для оновлення
+        self.title_text = ft.Text("Розклад станції", size=20, weight=ft.FontWeight.BOLD, color=theme_color)
+        
+        # Створюємо кнопку пошуку з посиланням для оновлення
+        self.search_button = ft.ElevatedButton(
+            text="Показати розклад",
+            icon=ft.Icons.SCHEDULE,
+            on_click=self._search_schedule,
+            style=ft.ButtonStyle(
+                bgcolor=theme_color,
+                color=ft.Colors.WHITE,
+                padding=ft.padding.symmetric(horizontal=30, vertical=15),
+                shape=ft.RoundedRectangleBorder(radius=10)
+            ),
+            height=50
+        )
+        
         return ft.Container(
             content=ft.Column([
                 # Форма пошуку
                 ft.Card(
                     content=ft.Container(
                         content=ft.Column([
-                            ft.Text("Розклад станції", size=20, weight=ft.FontWeight.BOLD, color=theme_color),
+                            self.title_text,
                             ft.Divider(),
                             
                             # Назва станції
@@ -299,18 +354,7 @@ class StationScheduleView:
                             
                             # Кнопка пошуку
                             ft.Container(
-                                ft.ElevatedButton(
-                                    text="Показати розклад",
-                                    icon=ft.Icons.SCHEDULE,
-                                    on_click=self._search_schedule,
-                                    style=ft.ButtonStyle(
-                                        bgcolor=theme_color,
-                                        color=ft.Colors.WHITE,
-                                        padding=ft.padding.symmetric(horizontal=30, vertical=15),
-                                        shape=ft.RoundedRectangleBorder(radius=10)
-                                    ),
-                                    height=50
-                                ),
+                                self.search_button,
                                 alignment=ft.alignment.center,
                                 margin=ft.margin.only(top=20)
                             )
