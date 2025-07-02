@@ -42,15 +42,6 @@ class SettingsView:
             on_change=self._on_theme_change
         )
         
-        self.font_size_slider = ft.Slider(
-            min=12,
-            max=20,
-            divisions=8,
-            value=14,
-            label="{value} px",
-            on_change=self._on_font_size_change
-        )
-        
         self.enable_animations_switch = ft.Switch(
             label="Анімації інтерфейсу",
             value=True,
@@ -88,7 +79,6 @@ class SettingsView:
         
         # Встановлюємо значення контролів
         self.theme_mode_dropdown.value = settings.get("theme_mode", "light")
-        self.font_size_slider.value = settings.get("font_size", 14)
         self.enable_animations_switch.value = settings.get("enable_animations", True)
         self.enable_sounds_switch.value = settings.get("enable_sounds", False)
         self.use_real_api_switch.value = settings.get("use_real_api", False)
@@ -133,12 +123,6 @@ class SettingsView:
         
         # Оновлюємо сторінку
         self.page.update()
-
-    def _on_font_size_change(self, e):
-        """Обробник зміни розміру шрифту"""
-        font_size = int(self.font_size_slider.value)
-        self.settings_service.set_pending_change("font_size", font_size)
-        self._update_save_button_state()
 
     def _on_animations_change(self, e):
         """Обробник включення/відключення анімацій"""
@@ -224,7 +208,6 @@ class SettingsView:
     def _reset_settings(self, e: ft.ControlEvent):
         """Скидання налаштувань до значень за замовчуванням"""
         self.theme_mode_dropdown.value = "light"
-        self.font_size_slider.value = 14
         self.enable_animations_switch.value = True
         self.enable_sounds_switch.value = False
         self.use_real_api_switch.value = False
@@ -261,7 +244,6 @@ class SettingsView:
         
         # Повертаємо контроли до збережених значень
         self.theme_mode_dropdown.value = settings.get("theme_mode", "light")
-        self.font_size_slider.value = settings.get("font_size", 14)
         self.enable_animations_switch.value = settings.get("enable_animations", True)
         self.enable_sounds_switch.value = settings.get("enable_sounds", False)
         self.use_real_api_switch.value = settings.get("use_real_api", False)
@@ -315,12 +297,6 @@ class SettingsView:
         theme_block = ft.ResponsiveRow([
             ft.Container(ft.Icon(ft.Icons.BRIGHTNESS_6), col={"xs": 12, "sm": 2, "md": 2, "lg": 2}),
             ft.Container(self.theme_mode_dropdown, expand=True, col={"xs": 12, "sm": 10, "md": 10, "lg": 10})
-        ], spacing=15)
-        # --- Гнучкий адаптивний блок шрифту ---
-        font_block = ft.ResponsiveRow([
-            ft.Container(ft.Icon(ft.Icons.FORMAT_SIZE), col={"xs": 12, "sm": 2, "md": 2, "lg": 2}),
-            ft.Container(ft.Text("Розмір шрифту:", size=14), col={"xs": 12, "sm": 4, "md": 4, "lg": 4}),
-            ft.Container(self.font_size_slider, expand=True, col={"xs": 12, "sm": 6, "md": 6, "lg": 6})
         ], spacing=15)
         # --- Гнучкий адаптивний блок анімацій ---
         anim_block = ft.ResponsiveRow([
@@ -377,11 +353,6 @@ class SettingsView:
                                 ft.Icon(ft.Icons.BRIGHTNESS_6),
                                 ft.Container(self.theme_mode_dropdown, expand=True)
                             ], spacing=15),
-                            ft.Row([
-                                ft.Icon(ft.Icons.FORMAT_SIZE),
-                                ft.Text("Розмір шрифту:", size=14),
-                                ft.Container(self.font_size_slider, expand=True)
-                            ], spacing=15),
                         ], spacing=15),
                         padding=ft.padding.all(20)
                     ),
@@ -402,7 +373,6 @@ class SettingsView:
                                 ft.Container(
                                     content=ft.Row([
                                         self.enable_animations_switch,
-                                        ft.Text("Анімації інтерфейсу", size=14)
                                     ], spacing=10),
                                     expand=True
                                 )
@@ -412,7 +382,6 @@ class SettingsView:
                                 ft.Container(
                                     content=ft.Row([
                                         self.enable_sounds_switch,
-                                        ft.Text("Звукові сповіщення", size=14)
                                     ], spacing=10),
                                     expand=True
                                 )
@@ -422,7 +391,6 @@ class SettingsView:
                                 ft.Container(
                                     content=ft.Row([
                                         self.use_real_api_switch,
-                                        ft.Text("Реальні дані УЗ", size=14)
                                     ], spacing=10),
                                     expand=True
                                 )
