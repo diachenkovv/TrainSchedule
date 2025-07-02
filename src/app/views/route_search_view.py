@@ -277,13 +277,16 @@ class RouteSearchView:
         else:
             return "#213685"
 
+    def _is_mobile(self):
+        # Використовуємо window_width згідно з документацією Flet
+        try:
+            return self.page.window_width is not None and self.page.window_width < 600
+        except Exception:
+            return False
+
     def build(self):
         theme_color = self._get_theme_color()
-        
-        # Створюємо заголовок з посиланням для оновлення
         self.title_text = ft.Text("Пошук маршруту", size=20, weight=ft.FontWeight.BOLD, color=theme_color)
-        
-        # Створюємо кнопку swap з посиланням для оновлення
         self.swap_button = ft.IconButton(
             icon=ft.Icons.SWAP_VERT,
             tooltip="Поміняти місцями",
@@ -291,8 +294,6 @@ class RouteSearchView:
             icon_color=theme_color,
             bgcolor=None
         )
-        
-        # Створюємо кнопку пошуку з посиланням для оновлення
         self.search_button = ft.ElevatedButton(
             text="Знайти маршрути",
             icon=ft.Icons.SEARCH,
@@ -305,7 +306,37 @@ class RouteSearchView:
             ),
             height=50
         )
-        
+
+        # --- Гнучкий адаптивний блок станцій ---
+        stations_block = ft.ResponsiveRow([
+            ft.Container(self.departure_station, col={'xs': 12, 'sm': 5, 'md': 5, 'lg': 5}),
+            ft.Container(self.swap_button, alignment=ft.alignment.center, col={'xs': 12, 'sm': 2, 'md': 2, 'lg': 2}),
+            ft.Container(self.arrival_station, col={'xs': 12, 'sm': 5, 'md': 5, 'lg': 5})
+        ], spacing=10)
+
+        # --- Дата та тип поїзда: адаптивність лише для мобільного ---
+        if self._is_mobile():
+            date_type_block = ft.Column([
+                ft.Container(
+                    content=ft.Column([
+                        ft.Text("Дата відправлення", size=14),
+                        self.date_button
+                    ], spacing=5),
+                ),
+                ft.Container(self.train_type)
+            ], spacing=10)
+        else:
+            date_type_block = ft.Row([
+                ft.Container(
+                    content=ft.Column([
+                        ft.Text("Дата відправлення", size=14),
+                        self.date_button
+                    ], spacing=5),
+                    expand=True
+                ),
+                ft.Container(self.train_type, expand=True)
+            ], spacing=20)
+
         return ft.Container(
             content=ft.Column([
                 # Форма пошуку
@@ -314,29 +345,10 @@ class RouteSearchView:
                         content=ft.Column([
                             self.title_text,
                             ft.Divider(),
-                            
                             # Станції
-                            ft.Row([
-                                ft.Container(self.departure_station, expand=True),
-                                ft.Container(
-                                    self.swap_button,
-                                    alignment=ft.alignment.center
-                                ),
-                                ft.Container(self.arrival_station, expand=True)
-                            ], spacing=10),
-                            
+                            stations_block,
                             # Дата та тип поїзда
-                            ft.Row([
-                                ft.Container(
-                                    content=ft.Column([
-                                        ft.Text("Дата відправлення", size=14),
-                                        self.date_button
-                                    ], spacing=5),
-                                    expand=True
-                                ),
-                                ft.Container(self.train_type, expand=True)
-                            ], spacing=20),
-                            
+                            date_type_block,
                             # Кнопка пошуку
                             ft.Container(
                                 self.search_button,
@@ -349,7 +361,6 @@ class RouteSearchView:
                     elevation=3,
                     margin=ft.margin.only(bottom=20)
                 ),
-                
                 # Результати пошуку
                 self.results_container
             ], 

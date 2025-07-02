@@ -311,9 +311,59 @@ class SettingsView:
             )
         )
         
+        # --- Гнучкий адаптивний блок теми ---
+        theme_block = ft.ResponsiveRow([
+            ft.Container(ft.Icon(ft.Icons.BRIGHTNESS_6), col={"xs": 12, "sm": 2, "md": 2, "lg": 2}),
+            ft.Container(self.theme_mode_dropdown, expand=True, col={"xs": 12, "sm": 10, "md": 10, "lg": 10})
+        ], spacing=15)
+        # --- Гнучкий адаптивний блок шрифту ---
+        font_block = ft.ResponsiveRow([
+            ft.Container(ft.Icon(ft.Icons.FORMAT_SIZE), col={"xs": 12, "sm": 2, "md": 2, "lg": 2}),
+            ft.Container(ft.Text("Розмір шрифту:", size=14), col={"xs": 12, "sm": 4, "md": 4, "lg": 4}),
+            ft.Container(self.font_size_slider, expand=True, col={"xs": 12, "sm": 6, "md": 6, "lg": 6})
+        ], spacing=15)
+        # --- Гнучкий адаптивний блок анімацій ---
+        anim_block = ft.ResponsiveRow([
+            ft.Container(ft.Icon(ft.Icons.ANIMATION), col={"xs": 12, "sm": 2, "md": 2, "lg": 2}),
+            ft.Container(
+                content=ft.Row([
+                    self.enable_animations_switch,
+                    ft.Text("Анімації інтерфейсу", size=14)
+                ], spacing=10),
+                expand=True, col={"xs": 12, "sm": 10, "md": 10, "lg": 10}
+            )
+        ], spacing=15)
+        # --- Гнучкий адаптивний блок звуків ---
+        sound_block = ft.ResponsiveRow([
+            ft.Container(ft.Icon(ft.Icons.VOLUME_UP), col={"xs": 12, "sm": 2, "md": 2, "lg": 2}),
+            ft.Container(
+                content=ft.Row([
+                    self.enable_sounds_switch,
+                    ft.Text("Звукові сповіщення", size=14)
+                ], spacing=10),
+                expand=True, col={"xs": 12, "sm": 10, "md": 10, "lg": 10}
+            )
+        ], spacing=15)
+        # --- Гнучкий адаптивний блок джерела даних ---
+        api_block = ft.ResponsiveRow([
+            ft.Container(ft.Icon(ft.Icons.CLOUD), col={"xs": 12, "sm": 2, "md": 2, "lg": 2}),
+            ft.Container(
+                content=ft.Row([
+                    self.use_real_api_switch,
+                    ft.Text("Реальні дані УЗ", size=14)
+                ], spacing=10),
+                expand=True, col={"xs": 12, "sm": 10, "md": 10, "lg": 10}
+            )
+        ], spacing=15)
+        # --- Гнучкий адаптивний блок кнопок дій ---
+        actions_buttons = ft.ResponsiveRow([
+            ft.Container(self.save_button, col={"xs": 12, "sm": 4, "md": 4, "lg": 4}),
+            ft.Container(self.reset_button, col={"xs": 12, "sm": 4, "md": 4, "lg": 4}),
+            ft.Container(self.about_button, col={"xs": 12, "sm": 4, "md": 4, "lg": 4})
+        ], spacing=10)
+
         return ft.Container(
             content=ft.Column([
-                
                 # Налаштування теми
                 ft.Card(
                     content=ft.Container(
@@ -323,14 +373,10 @@ class SettingsView:
                                 self.appearance_title
                             ], spacing=10),
                             ft.Divider(height=1),
-                            
-                            # Вибір теми
                             ft.Row([
                                 ft.Icon(ft.Icons.BRIGHTNESS_6),
                                 ft.Container(self.theme_mode_dropdown, expand=True)
                             ], spacing=15),
-                            
-                            # Розмір шрифту
                             ft.Row([
                                 ft.Icon(ft.Icons.FORMAT_SIZE),
                                 ft.Text("Розмір шрифту:", size=14),
@@ -342,7 +388,6 @@ class SettingsView:
                     elevation=2,
                     margin=ft.margin.only(bottom=15)
                 ),
-                
                 # Налаштування поведінки
                 ft.Card(
                     content=ft.Container(
@@ -352,8 +397,6 @@ class SettingsView:
                                 self.behavior_title
                             ], spacing=10),
                             ft.Divider(height=1),
-                            
-                            # Анімації
                             ft.Row([
                                 ft.Icon(ft.Icons.ANIMATION),
                                 ft.Container(
@@ -364,8 +407,6 @@ class SettingsView:
                                     expand=True
                                 )
                             ], spacing=15),
-                            
-                            # Звуки
                             ft.Row([
                                 ft.Icon(ft.Icons.VOLUME_UP),
                                 ft.Container(
@@ -376,8 +417,6 @@ class SettingsView:
                                     expand=True
                                 )
                             ], spacing=15),
-                            
-                            # Джерело даних
                             ft.Row([
                                 ft.Icon(ft.Icons.CLOUD),
                                 ft.Container(
@@ -394,7 +433,6 @@ class SettingsView:
                     elevation=2,
                     margin=ft.margin.only(bottom=15)
                 ),
-                
                 # Кнопки дій
                 ft.Card(
                     content=ft.Container(
@@ -404,14 +442,7 @@ class SettingsView:
                                 self.actions_title
                             ], spacing=10),
                             ft.Divider(height=1),
-                            
-                            # Всі кнопки в одному рядку
-                            ft.Row([
-                                # Кнопка збереження
-                                self.save_button,
-                                self.reset_button,
-                                self.about_button
-                            ], spacing=10, alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
+                            actions_buttons
                         ], spacing=15),
                         padding=ft.padding.all(20)
                     ),
