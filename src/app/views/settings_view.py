@@ -279,13 +279,6 @@ class SettingsView:
         theme_color = self._get_theme_color()
         
         # Створюємо елементи з посиланнями для оновлення теми
-        self.header_icon = ft.Icon(ft.Icons.SETTINGS, size=30, color=theme_color)
-        self.header_title = ft.Text(
-            "Налаштування",
-            size=24,
-            weight=ft.FontWeight.BOLD,
-            color=theme_color
-        )
         
         self.appearance_icon = ft.Icon(ft.Icons.PALETTE, color=theme_color)
         self.appearance_title = ft.Text("Зовнішній вигляд", size=18, weight=ft.FontWeight.BOLD, color=theme_color)
@@ -320,19 +313,6 @@ class SettingsView:
         
         return ft.Container(
             content=ft.Column([
-                # Заголовок
-                ft.Container(
-                    content=ft.Row([
-                        self.header_icon,
-                        self.header_title
-                    ], 
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    spacing=10),
-                    padding=ft.padding.all(20),
-                    bgcolor=None,
-                    border_radius=10,
-                    margin=ft.margin.only(bottom=20)
-                ),
                 
                 # Налаштування теми
                 ft.Card(
