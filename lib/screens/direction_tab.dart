@@ -1,0 +1,331 @@
+import 'package:flutter/material.dart';
+import '../providers/settings_provider.dart';
+import '../models/train_result.dart';
+import '../widgets/train_result_card.dart';
+import '../widgets/station_autocomplete_field.dart';
+import '../widgets/multi_select_train_type_field.dart';
+
+class DirectionTab extends StatefulWidget {
+  final SettingsProvider settingsProvider;
+
+  const DirectionTab({super.key, required this.settingsProvider});
+
+  @override
+  State<DirectionTab> createState() => _DirectionTabState();
+}
+
+class _DirectionTabState extends State<DirectionTab> {
+  String? _fromStation;
+  String? _toStation;
+  DateTime _selectedDate = DateTime.now();
+  List<String> _trainTypes = ['Усі'];
+  List<TrainResult> _results = [];
+  bool _isLoading = false;
+
+  final List<String> _stations = [
+    'Київ-Пасажирський',
+    'Львів',
+    'Одеса-Головна',
+    'Харків-Пасажирський',
+    'Дніпро-Головний',
+    'Запоріжжя-1',
+    'Івано-Франківськ',
+    'Тернопіль',
+    'Вінниця',
+    'Чернівці',
+    'Ужгород',
+    'Полтава-Київська',
+    'КривийРіг-Головний',
+    'Маріуполь',
+    'Херсон',
+    'Черкаси',
+    'Суми',
+    'Чернігів',
+  ];
+
+  Future<void> _pickDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      locale: const Locale('uk', 'UA'),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            datePickerTheme: DatePickerThemeData(
+              headerBackgroundColor: const Color(0xFF2B2E7F),
+              headerForegroundColor: Colors.white,
+              weekdayStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              dayStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  void _searchTrains() async {
+    if (_fromStation == null || _toStation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Оберіть станції відправлення та прибуття')),
+      );
+      return;
+    }
+
+    if (_fromStation == _toStation) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Станції відправлення та прибуття не можуть збігатися')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _results = [];
+    });
+
+    // Симуляція запиту
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (widget.settingsProvider.useMockData) {
+      setState(() {
+        _results = _getMockData();
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<TrainResult> _getMockData() {
+    return [
+      TrainResult(
+        trainNumber: '091К',
+        trainType: 'Швидкий',
+        from: _fromStation!,
+        to: _toStation!,
+        departureTime: '08:30',
+        arrivalTime: '14:20',
+        duration: '5г 50хв',
+        price: '450 грн',
+        availableSeats: 120,
+        fullRoute: 'Київ-Пас. → Житомир → Рівне → Луцьк → Львів',
+      ),
+      TrainResult(
+        trainNumber: '743О',
+        trainType: 'Пасажирський',
+        from: _fromStation!,
+        to: _toStation!,
+        departureTime: '22:15',
+        arrivalTime: '06:40',
+        duration: '8г 25хв',
+        price: '320 грн',
+        availableSeats: 85,
+        fullRoute: 'Київ-Пас. → Фастів → Житомир → Коростень → Сарни → Ковель → Львів',
+      ),
+      TrainResult(
+        trainNumber: '749К',
+        trainType: 'Експрес',
+        from: _fromStation!,
+        to: _toStation!,
+        departureTime: '15:45',
+        arrivalTime: '20:30',
+        duration: '4г 45хв',
+        price: '580 грн',
+        availableSeats: 45,
+        fullRoute: 'Київ-Пас. → Житомир → Новоград-Волинський → Рівне → Дубно → Львів',
+      ),
+      TrainResult(
+        trainNumber: '105І',
+        trainType: 'Інтерсіті',
+        from: _fromStation!,
+        to: _toStation!,
+        departureTime: '12:00',
+        arrivalTime: '16:15',
+        duration: '4г 15хв',
+        price: '780 грн',
+        availableSeats: 68,
+        fullRoute: 'Київ-Пас. → Житомир → Рівне → Львів',
+      ),
+      TrainResult(
+        trainNumber: '047І+',
+        trainType: 'Інтерсіті+',
+        from: _fromStation!,
+        to: _toStation!,
+        departureTime: '16:30',
+        arrivalTime: '19:50',
+        duration: '3г 20хв',
+        price: '950 грн',
+        availableSeats: 32,
+        fullRoute: 'Київ-Пас. → Житомир → Львів',
+      ),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Форма пошуку
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: StationAutocompleteField(
+                          value: _fromStation,
+                          onChanged: (value) => setState(() => _fromStation = value),
+                          labelText: 'Станція відправлення',
+                          prefixIcon: Icons.departure_board,
+                          stations: _stations,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.swap_horiz),
+                        onPressed: () {
+                          setState(() {
+                            final temp = _fromStation;
+                            _fromStation = _toStation;
+                            _toStation = temp;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  StationAutocompleteField(
+                    value: _toStation,
+                    onChanged: (value) => setState(() => _toStation = value),
+                    labelText: 'Станція прибуття',
+                    prefixIcon: Icons.location_on,
+                    stations: _stations,
+                  ),
+                  const SizedBox(height: 16),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      if (constraints.maxWidth > 600) {
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: InkWell(
+                                onTap: _pickDate,
+                                borderRadius: BorderRadius.circular(8),
+                                child: InputDecorator(
+                                  decoration: const InputDecoration(
+                                    labelText: 'Дата',
+                                    prefixIcon: Icon(Icons.calendar_today),
+                                    border: OutlineInputBorder(),
+                                    filled: true,
+                                  ),
+                                  child: Text(
+                                    '${_selectedDate.day.toString().padLeft(2, '0')}.${_selectedDate.month.toString().padLeft(2, '0')}.${_selectedDate.year}',
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: MultiSelectTrainTypeField(
+                                selectedTypes: _trainTypes,
+                                onChanged: (value) => setState(() => _trainTypes = value),
+                                labelText: 'Тип поїзда',
+                                prefixIcon: Icons.train,
+                              ),
+                            ),
+                          ],
+                        );
+                      } else {
+                        return Column(
+                          children: [
+                            InkWell(
+                              onTap: _pickDate,
+                              borderRadius: BorderRadius.circular(8),
+                              child: InputDecorator(
+                                decoration: const InputDecoration(
+                                  labelText: 'Дата',
+                                  prefixIcon: Icon(Icons.calendar_today),
+                                  border: OutlineInputBorder(),
+                                  filled: true,
+                                ),
+                                child: Text(
+                                  '${_selectedDate.day.toString().padLeft(2, '0')}.${_selectedDate.month.toString().padLeft(2, '0')}.${_selectedDate.year}',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            MultiSelectTrainTypeField(
+                              selectedTypes: _trainTypes,
+                              onChanged: (value) => setState(() => _trainTypes = value),
+                              labelText: 'Тип поїзда',
+                              prefixIcon: Icons.train,
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton.icon(
+                    onPressed: _isLoading ? null : _searchTrains,
+                    icon: _isLoading 
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.search),
+                    label: Text(_isLoading ? 'Пошук...' : 'Знайти поїзди'),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Результати пошуку
+          if (_results.isNotEmpty)
+            Expanded(
+              child: ListView.builder(
+                itemCount: _results.length,
+                itemBuilder: (context, index) => TrainResultCard(
+                  result: _results[index],
+                  showFullRoute: true,
+                ),
+              ),
+            ),
+          if (_results.isEmpty && !_isLoading)
+            const Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.search, size: 64, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text(
+                      'Виберіть станції та натисніть "Знайти поїзди"',
+                      style: TextStyle(color: Colors.grey),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
