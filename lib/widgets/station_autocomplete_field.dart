@@ -6,6 +6,7 @@ class StationAutocompleteField extends StatelessWidget {
   final String labelText;
   final IconData? prefixIcon;
   final List<String> stations;
+  final TextEditingController? controller;
 
   const StationAutocompleteField({
     super.key,
@@ -14,6 +15,7 @@ class StationAutocompleteField extends StatelessWidget {
     required this.labelText,
     required this.stations,
     this.prefixIcon,
+    this.controller,
   });
 
   @override
@@ -38,6 +40,13 @@ class StationAutocompleteField extends StatelessWidget {
         FocusNode focusNode,
         VoidCallback onFieldSubmitted,
       ) {
+        // Синхронізуємо текст контролера з value, якщо вони різні
+        if (value != null && value != textEditingController.text) {
+          textEditingController.text = value!;
+          textEditingController.selection = TextSelection.fromPosition(
+            TextPosition(offset: textEditingController.text.length),
+          );
+        }
         return TextField(
           controller: textEditingController,
           focusNode: focusNode,
@@ -51,15 +60,12 @@ class StationAutocompleteField extends StatelessWidget {
             fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           ),
           onChanged: (value) {
-            // Якщо введене значення точно відповідає одній зі станцій, вибираємо її
             final exactMatch = stations.firstWhere(
               (station) => station.toLowerCase() == value.toLowerCase(),
               orElse: () => '',
             );
             if (exactMatch.isNotEmpty) {
               onChanged(exactMatch);
-            } else {
-              onChanged(null);
             }
           },
           onSubmitted: (value) => onFieldSubmitted(),

@@ -23,6 +23,9 @@ class _DirectionTabState extends State<DirectionTab> {
   List<TrainResult> _results = [];
   bool _isLoading = false;
 
+  final TextEditingController _fromController = TextEditingController();
+  final TextEditingController _toController = TextEditingController();
+
   final List<String> _stations = [
     'Київ-Пасажирський',
     'Львів',
@@ -47,10 +50,26 @@ class _DirectionTabState extends State<DirectionTab> {
   @override
   void initState() {
     super.initState();
+    _fromController.addListener(() {
+      if (_fromController.text != _fromStation) {
+        setState(() {
+          _fromStation = _fromController.text.isEmpty ? null : _fromController.text;
+        });
+      }
+    });
+    _toController.addListener(() {
+      if (_toController.text != _toStation) {
+        setState(() {
+          _toStation = _toController.text.isEmpty ? null : _toController.text;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
+    _fromController.dispose();
+    _toController.dispose();
     super.dispose();
   }
 
@@ -117,7 +136,7 @@ class _DirectionTabState extends State<DirectionTab> {
     return [
       TrainResult(
         trainNumber: '091К',
-        trainType: 'Швидкий',
+        trainType: 'train_type_fast',
         from: _fromStation!,
         to: _toStation!,
         departureTime: '08:30',
@@ -129,7 +148,7 @@ class _DirectionTabState extends State<DirectionTab> {
       ),
       TrainResult(
         trainNumber: '743О',
-        trainType: 'Пасажирський',
+        trainType: 'train_type_passenger',
         from: _fromStation!,
         to: _toStation!,
         departureTime: '22:15',
@@ -141,7 +160,7 @@ class _DirectionTabState extends State<DirectionTab> {
       ),
       TrainResult(
         trainNumber: '749К',
-        trainType: 'Експрес',
+        trainType: 'train_type_express',
         from: _fromStation!,
         to: _toStation!,
         departureTime: '15:45',
@@ -153,7 +172,7 @@ class _DirectionTabState extends State<DirectionTab> {
       ),
       TrainResult(
         trainNumber: '105І',
-        trainType: 'Інтерсіті',
+        trainType: 'train_type_intercity',
         from: _fromStation!,
         to: _toStation!,
         departureTime: '12:00',
@@ -165,7 +184,7 @@ class _DirectionTabState extends State<DirectionTab> {
       ),
       TrainResult(
         trainNumber: '047І+',
-        trainType: 'Інтерсіті+',
+        trainType: 'train_type_intercity_plus',
         from: _fromStation!,
         to: _toStation!,
         departureTime: '16:30',
@@ -196,10 +215,14 @@ class _DirectionTabState extends State<DirectionTab> {
                       Expanded(
                         child: StationAutocompleteField(
                           value: _fromStation,
-                          onChanged: (value) => setState(() => _fromStation = value),
+                          onChanged: (value) {
+                            setState(() => _fromStation = value);
+                            _fromController.text = value ?? '';
+                          },
                           labelText: S.of(context).from_station,
                           prefixIcon: Icons.departure_board,
                           stations: _stations,
+                          controller: _fromController,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -211,6 +234,9 @@ class _DirectionTabState extends State<DirectionTab> {
                             final temp = _fromStation;
                             _fromStation = _toStation;
                             _toStation = temp;
+                            final tempText = _fromController.text;
+                            _fromController.text = _toController.text;
+                            _toController.text = tempText;
                             _results = [];
                           });
                         },
@@ -220,10 +246,14 @@ class _DirectionTabState extends State<DirectionTab> {
                   const SizedBox(height: 12),
                   StationAutocompleteField(
                     value: _toStation,
-                    onChanged: (value) => setState(() => _toStation = value),
+                    onChanged: (value) {
+                      setState(() => _toStation = value);
+                      _toController.text = value ?? '';
+                    },
                     labelText: S.of(context).to_station,
                     prefixIcon: Icons.location_on,
                     stations: _stations,
+                    controller: _toController,
                   ),
                   const SizedBox(height: 16),
                   LayoutBuilder(
