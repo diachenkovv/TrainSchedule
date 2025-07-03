@@ -4,6 +4,7 @@ import '../models/train_result.dart';
 import '../widgets/train_result_card.dart';
 import '../widgets/station_autocomplete_field.dart';
 import '../widgets/multi_select_train_type_field.dart';
+import '../generated/l10n.dart';
 
 class ScheduleTab extends StatefulWidget {
   final SettingsProvider settingsProvider;
@@ -17,8 +18,8 @@ class ScheduleTab extends StatefulWidget {
 class _ScheduleTabState extends State<ScheduleTab> {
   String? _selectedStation;
   DateTime _selectedDate = DateTime.now();
-  List<String> _trainTypes = ['Усі'];
-  String _scheduleType = 'Відправлення';
+  List<String> _trainTypes = ['train_type_all'];
+  String _scheduleType = 'departure'; // Використовуємо ключ
   List<ScheduleResult> _results = [];
   bool _isLoading = false;
 
@@ -43,9 +44,9 @@ class _ScheduleTabState extends State<ScheduleTab> {
     'Чернігів',
   ];
 
-  final List<String> _scheduleTypes = [
-    'Відправлення',
-    'Прибуття',
+  final List<String> _scheduleTypeKeys = [
+    'departure',
+    'arrival',
   ];
 
   Future<void> _pickDate() async {
@@ -79,7 +80,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
   void _searchSchedule() async {
     if (_selectedStation == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Оберіть станцію')),
+        SnackBar(content: Text(S.of(context).error_select_station)),
       );
       return;
     }
@@ -104,8 +105,8 @@ class _ScheduleTabState extends State<ScheduleTab> {
     return [
       ScheduleResult(
         trainNumber: '091К',
-        trainType: 'Швидкий',
-        destination: _scheduleType == 'Відправлення' ? 'Львів' : 'Київ-Пасажирський',
+        trainType: 'train_type_fast',
+        destination: _scheduleType == 'departure' ? 'Львів' : 'Київ-Пасажирський',
         departureTime: '08:30',
         arrivalTime: '08:30',
         platform: '3',
@@ -113,8 +114,8 @@ class _ScheduleTabState extends State<ScheduleTab> {
       ),
       ScheduleResult(
         trainNumber: '743О',
-        trainType: 'Пасажирський',
-        destination: _scheduleType == 'Відправлення' ? 'Одеса-Головна' : 'Харків-Пасажирський',
+        trainType: 'train_type_passenger',
+        destination: _scheduleType == 'departure' ? 'Одеса-Головна' : 'Харків-Пасажирський',
         departureTime: '10:15',
         arrivalTime: '10:15',
         platform: '1',
@@ -122,8 +123,8 @@ class _ScheduleTabState extends State<ScheduleTab> {
       ),
       ScheduleResult(
         trainNumber: '749К',
-        trainType: 'Експрес',
-        destination: _scheduleType == 'Відправлення' ? 'Дніпро-Головний' : 'Івано-Франківськ',
+        trainType: 'train_type_express',
+        destination: _scheduleType == 'departure' ? 'Дніпро-Головний' : 'Івано-Франківськ',
         departureTime: '12:45',
         arrivalTime: '12:45',
         platform: '2',
@@ -131,8 +132,8 @@ class _ScheduleTabState extends State<ScheduleTab> {
       ),
       ScheduleResult(
         trainNumber: '105І',
-        trainType: 'Інтерсіті+',
-        destination: _scheduleType == 'Відправлення' ? 'Запоріжжя-1' : 'Тернопіль',
+        trainType: 'train_type_intercity_plus',
+        destination: _scheduleType == 'departure' ? 'Запоріжжя-1' : 'Тернопіль',
         departureTime: '14:20',
         arrivalTime: '14:20',
         platform: '4',
@@ -140,14 +141,25 @@ class _ScheduleTabState extends State<ScheduleTab> {
       ),
       ScheduleResult(
         trainNumber: '752П',
-        trainType: 'Пасажирський',
-        destination: _scheduleType == 'Відправлення' ? 'Вінниця' : 'Чернівці',
+        trainType: 'train_type_passenger',
+        destination: _scheduleType == 'departure' ? 'Вінниця' : 'Чернівці',
         departureTime: '16:55',
         arrivalTime: '16:55',
         platform: '5',
         status: 'Затримка',
       ),
     ];
+  }
+
+  String _getScheduleTypeName(BuildContext context, String key) {
+    switch (key) {
+      case 'departure':
+        return S.of(context).schedule_type_departure;
+      case 'arrival':
+        return S.of(context).schedule_type_arrival;
+      default:
+        return key;
+    }
   }
 
   @override
@@ -166,7 +178,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
                   StationAutocompleteField(
                     value: _selectedStation,
                     onChanged: (value) => setState(() => _selectedStation = value),
-                    labelText: 'Станція',
+                    labelText: S.of(context).to_station,
                     prefixIcon: Icons.location_on,
                     stations: _stations,
                   ),
@@ -181,10 +193,10 @@ class _ScheduleTabState extends State<ScheduleTab> {
                                 onTap: _pickDate,
                                 borderRadius: BorderRadius.circular(8),
                                 child: InputDecorator(
-                                  decoration: const InputDecoration(
-                                    labelText: 'Дата',
-                                    prefixIcon: Icon(Icons.calendar_today),
-                                    border: OutlineInputBorder(),
+                                  decoration: InputDecoration(
+                                    labelText: S.of(context).date,
+                                    prefixIcon: const Icon(Icons.calendar_today),
+                                    border: const OutlineInputBorder(),
                                     filled: true,
                                   ),
                                   child: Text(
@@ -197,15 +209,15 @@ class _ScheduleTabState extends State<ScheduleTab> {
                             Expanded(
                               child: DropdownButtonFormField<String>(
                                 value: _scheduleType,
-                                decoration: const InputDecoration(
-                                  labelText: 'Тип розкладу',
-                                  prefixIcon: Icon(Icons.schedule),
-                                  border: OutlineInputBorder(),
+                                decoration: InputDecoration(
+                                  labelText: S.of(context).schedule_type,
+                                  prefixIcon: const Icon(Icons.schedule),
+                                  border: const OutlineInputBorder(),
                                   filled: true,
                                 ),
-                                items: _scheduleTypes.map((type) => DropdownMenuItem(
-                                  value: type,
-                                  child: Text(type),
+                                items: _scheduleTypeKeys.map((key) => DropdownMenuItem(
+                                  value: key,
+                                  child: Text(_getScheduleTypeName(context, key)),
                                 )).toList(),
                                 onChanged: (value) => setState(() => _scheduleType = value!),
                               ),
@@ -219,10 +231,10 @@ class _ScheduleTabState extends State<ScheduleTab> {
                               onTap: _pickDate,
                               borderRadius: BorderRadius.circular(8),
                               child: InputDecorator(
-                                decoration: const InputDecoration(
-                                  labelText: 'Дата',
-                                  prefixIcon: Icon(Icons.calendar_today),
-                                  border: OutlineInputBorder(),
+                                decoration: InputDecoration(
+                                  labelText: S.of(context).date,
+                                  prefixIcon: const Icon(Icons.calendar_today),
+                                  border: const OutlineInputBorder(),
                                   filled: true,
                                 ),
                                 child: Text(
@@ -233,15 +245,15 @@ class _ScheduleTabState extends State<ScheduleTab> {
                             const SizedBox(height: 16),
                             DropdownButtonFormField<String>(
                               value: _scheduleType,
-                              decoration: const InputDecoration(
-                                labelText: 'Тип розкладу',
-                                prefixIcon: Icon(Icons.schedule),
-                                border: OutlineInputBorder(),
+                              decoration: InputDecoration(
+                                labelText: S.of(context).schedule_type,
+                                prefixIcon: const Icon(Icons.schedule),
+                                border: const OutlineInputBorder(),
                                 filled: true,
                               ),
-                              items: _scheduleTypes.map((type) => DropdownMenuItem(
-                                value: type,
-                                child: Text(type),
+                              items: _scheduleTypeKeys.map((key) => DropdownMenuItem(
+                                value: key,
+                                child: Text(_getScheduleTypeName(context, key)),
                               )).toList(),
                               onChanged: (value) => setState(() => _scheduleType = value!),
                             ),
@@ -254,7 +266,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
                   MultiSelectTrainTypeField(
                     selectedTypes: _trainTypes,
                     onChanged: (value) => setState(() => _trainTypes = value),
-                    labelText: 'Тип поїзда',
+                    labelText: S.of(context).train_type,
                     prefixIcon: Icons.train,
                   ),
                   const SizedBox(height: 24),
@@ -267,7 +279,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.search),
-                    label: Text(_isLoading ? 'Пошук...' : 'Показати розклад'),
+                    label: Text(_isLoading ? S.of(context).search + '...' : S.of(context).find_trains),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                     ),
@@ -288,40 +300,44 @@ class _ScheduleTabState extends State<ScheduleTab> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: constraints.maxWidth > 600 
-                    ? const Row(
+                    ? Row(
                         children: [
                           Expanded(
                             flex: 2,
-                            child: Text('Поїзд', style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: Text(S.of(context).train_table_train, style: const TextStyle(fontWeight: FontWeight.bold)),
                           ),
                           Expanded(
                             flex: 3,
-                            child: Text('Напрямок', style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: Text(S.of(context).schedule_table_direction, style: const TextStyle(fontWeight: FontWeight.bold)),
                           ),
                           Expanded(
-                            child: Text('Час', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                            child: Text(
+                              _getScheduleTypeName(context, _scheduleType),
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                           Expanded(
-                            child: Text('Платф.', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                            child: Text(S.of(context).schedule_table_platform, style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                           ),
                           Expanded(
-                            child: Text('Статус', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                            child: Text(S.of(context).schedule_table_status, style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                           ),
                         ],
                       )
                     : Row(
                         children: [
-                          const Expanded(
+                          Expanded(
                             flex: 2,
-                            child: Text('Поїзд', style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: Text(S.of(context).train_table_train, style: const TextStyle(fontWeight: FontWeight.bold)),
                           ),
-                          const Expanded(
+                          Expanded(
                             flex: 2,
-                            child: Text('Напрямок', style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: Text(S.of(context).schedule_table_direction, style: const TextStyle(fontWeight: FontWeight.bold)),
                           ),
                           Expanded(
                             child: Text(
-                              _scheduleType == 'Відправлення' ? 'Відпр.' : 'Приб.',
+                              _getScheduleTypeName(context, _scheduleType),
                               style: const TextStyle(fontWeight: FontWeight.bold),
                               textAlign: TextAlign.center,
                             ),
@@ -342,16 +358,16 @@ class _ScheduleTabState extends State<ScheduleTab> {
               ),
             ),
           if (_results.isEmpty && !_isLoading)
-            const Expanded(
+            Expanded(
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.schedule, size: 64, color: Colors.grey),
-                    SizedBox(height: 16),
+                    const Icon(Icons.schedule, size: 64, color: Colors.grey),
+                    const SizedBox(height: 16),
                     Text(
-                      'Оберіть станцію та натисніть "Показати розклад"',
-                      style: TextStyle(color: Colors.grey),
+                      S.of(context).empty_schedule_search,
+                      style: const TextStyle(color: Colors.grey),
                       textAlign: TextAlign.center,
                     ),
                   ],

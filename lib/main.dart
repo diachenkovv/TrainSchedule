@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens/home_screen.dart';
 import 'providers/theme_provider.dart';
 import 'providers/settings_provider.dart';
+import 'generated/l10n.dart';
 
 void main() {
   runApp(const TrainScheduleApp());
@@ -34,15 +35,14 @@ class _TrainScheduleAppState extends State<TrainScheduleApp> {
       theme: _getThemeData(Brightness.light),
       darkTheme: _getThemeData(Brightness.dark),
       themeMode: _themeProvider.themeMode,
-      localizationsDelegates: const [
+      localizationsDelegates: [
+        S.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('uk', 'UA'),
-      ],
-      locale: const Locale('uk', 'UA'),
+      supportedLocales: S.delegate.supportedLocales,
+      locale: _settingsProvider.locale,
       home: LayoutBuilder(
         builder: (context, constraints) {
           return ConstrainedBox(

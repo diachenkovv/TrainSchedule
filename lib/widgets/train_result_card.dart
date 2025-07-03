@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trainshedule/generated/l10n.dart';
 import '../models/train_result.dart';
 
 class TrainResultCard extends StatelessWidget {
@@ -13,6 +14,7 @@ class TrainResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -25,7 +27,7 @@ class TrainResultCard extends StatelessWidget {
                 Flexible(
                   flex: 2,
                   child: Text(
-                    'Поїзд ${result.trainNumber}',
+                    '${s.train_table_train} ${result.trainNumber}',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -36,20 +38,20 @@ class TrainResultCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _getTrainTypeColor(result.trainType),
+                    color: _getTrainTypeColor(result.trainType, context),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        _getTrainTypeIcon(result.trainType),
+                        _getTrainTypeIcon(result.trainType, context),
                         size: 14,
                         color: Colors.white,
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        result.trainType,
+                        _getTrainTypeName(context, result.trainType),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -100,7 +102,7 @@ class TrainResultCard extends StatelessWidget {
                       const Icon(Icons.arrow_forward, color: Colors.grey),
                       const SizedBox(height: 4),
                       Text(
-                        result.duration,
+                        _formatDuration(context, result.duration),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.grey,
                         ),
@@ -159,7 +161,7 @@ class TrainResultCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Повний маршрут:',
+                        s.full_route,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.grey,
                           fontWeight: FontWeight.w500,
@@ -202,14 +204,14 @@ class TrainResultCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Від ${result.price}',
+                    '${s.from_price} ${result.price}',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).primaryColor,
                     ),
                   ),
                   Text(
-                    'Місць: ${result.availableSeats}',
+                    '${s.seats}: ${result.availableSeats}',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: result.availableSeats > 50 ? Colors.green : 
                              result.availableSeats > 10 ? Colors.orange : Colors.red,
@@ -223,37 +225,101 @@ class TrainResultCard extends StatelessWidget {
     );
   }
 
-  Color _getTrainTypeColor(String type) {
-    switch (type) {
-      case 'Інтерсіті+':
+  String _formatDuration(BuildContext context, String duration) {
+    // Очікується формат "2 г 15 хв" або "2 h 15 m"
+    final s = S.of(context);
+    return duration
+      .replaceAll(RegExp(r'\bг\b'), s.duration_hour)
+      .replaceAll(RegExp(r'\bгод\b'), s.duration_hour)
+      .replaceAll(RegExp(r'\bh\b'), s.duration_hour)
+      .replaceAll(RegExp(r'\bхв\b'), s.duration_minute)
+      .replaceAll(RegExp(r'\bm\b'), s.duration_minute)
+      .replaceAll('min', s.duration_minute);
+  }
+
+  String _getTrainTypeName(BuildContext context, String key) {
+    final s = S.of(context);
+    switch (key) {
+      case 'train_type_all':
+        return s.train_type_all;
+      case 'train_type_fast':
+        return s.train_type_fast;
+      case 'train_type_passenger':
+        return s.train_type_passenger;
+      case 'train_type_express':
+        return s.train_type_express;
+      case 'train_type_intercity':
+        return s.train_type_intercity;
+      case 'train_type_intercity_plus':
+        return s.train_type_intercity_plus;
+      case 'train_type_suburban':
+        return s.train_type_suburban;
+      case 'train_type_regional':
+        return s.train_type_regional;
+      default:
+        return key;
+    }
+  }
+
+  Color _getTrainTypeColor(String key, BuildContext context) {
+    switch (key) {
+      case 'train_type_intercity_plus':
         return Colors.red;
-      case 'Інтерсіті':
+      case 'train_type_intercity':
         return Colors.purple;
-      case 'Експрес':
+      case 'train_type_express':
         return Colors.blue;
-      case 'Швидкий':
+      case 'train_type_fast':
         return Colors.green;
-      case 'Пасажирський':
+      case 'train_type_passenger':
         return Colors.orange;
+      case 'train_type_suburban':
+        return Colors.teal;
+      case 'train_type_regional':
+        return Colors.indigo;
       default:
         return Colors.grey;
     }
   }
 
-  IconData _getTrainTypeIcon(String type) {
-    switch (type) {
-      case 'Інтерсіті+':
+  IconData _getTrainTypeIcon(String key, BuildContext context) {
+    switch (key) {
+      case 'train_type_intercity_plus':
         return Icons.speed;
-      case 'Інтерсіті':
+      case 'train_type_intercity':
         return Icons.trending_up;
-      case 'Експрес':
+      case 'train_type_express':
         return Icons.flash_on;
-      case 'Швидкий':
+      case 'train_type_fast':
         return Icons.directions_transit;
-      case 'Пасажирський':
+      case 'train_type_passenger':
         return Icons.train;
+      case 'train_type_suburban':
+        return Icons.directions_subway;
+      case 'train_type_regional':
+        return Icons.directions_railway;
       default:
         return Icons.train;
+    }
+  }
+
+  String _getStatusName(BuildContext context, String status) {
+    final s = S.of(context);
+    switch (status) {
+      case 'on_time':
+      case 'Вчасно':
+        return s.status_on_time;
+      case 'delayed':
+      case 'Затримка':
+        return s.status_delayed;
+      case 'departed':
+      case 'Відправлено':
+        return s.status_departed;
+      case 'cancelled':
+      case 'Скасовано':
+        return s.status_cancelled;
+      default:
+        return status;
     }
   }
 }
@@ -262,6 +328,50 @@ class ScheduleResultCard extends StatelessWidget {
   final ScheduleResult result;
 
   const ScheduleResultCard({super.key, required this.result});
+
+  String _getTrainTypeName(BuildContext context, String key) {
+    final s = S.of(context);
+    switch (key) {
+      case 'train_type_all':
+        return s.train_type_all;
+      case 'train_type_fast':
+        return s.train_type_fast;
+      case 'train_type_passenger':
+        return s.train_type_passenger;
+      case 'train_type_express':
+        return s.train_type_express;
+      case 'train_type_intercity':
+        return s.train_type_intercity;
+      case 'train_type_intercity_plus':
+        return s.train_type_intercity_plus;
+      case 'train_type_suburban':
+        return s.train_type_suburban;
+      case 'train_type_regional':
+        return s.train_type_regional;
+      default:
+        return key;
+    }
+  }
+
+  String _getStatusName(BuildContext context, String status) {
+    final s = S.of(context);
+    switch (status) {
+      case 'on_time':
+      case 'Вчасно':
+        return s.status_on_time;
+      case 'delayed':
+      case 'Затримка':
+        return s.status_delayed;
+      case 'departed':
+      case 'Відправлено':
+        return s.status_departed;
+      case 'cancelled':
+      case 'Скасовано':
+        return s.status_cancelled;
+      default:
+        return status;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -279,13 +389,13 @@ class ScheduleResultCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Поїзд ${result.trainNumber}',
+                          '${S.of(context).train_table_train} ${result.trainNumber}',
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                          result.trainType,
+                          _getTrainTypeName(context, result.trainType),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.grey,
                           ),
@@ -312,7 +422,7 @@ class ScheduleResultCard extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(
-                      'Пл. ${result.platform}',
+                      '${S.of(context).schedule_table_platform} ${result.platform}',
                       style: Theme.of(context).textTheme.bodyMedium,
                       textAlign: TextAlign.center,
                     ),
@@ -321,11 +431,11 @@ class ScheduleResultCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: _getStatusColor(result.status),
+                        color: _getStatusColor(_getStatusName(context, result.status), context),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        result.status,
+                        _getStatusName(context, result.status),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -349,13 +459,13 @@ class ScheduleResultCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Поїзд ${result.trainNumber}',
+                              '${S.of(context).train_table_train} ${result.trainNumber}',
                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
-                              result.trainType,
+                              _getTrainTypeName(context, result.trainType),
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: Colors.grey,
                               ),
@@ -366,11 +476,11 @@ class ScheduleResultCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: _getStatusColor(result.status),
+                          color: _getStatusColor(_getStatusName(context, result.status), context),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          result.status,
+                          _getStatusName(context, result.status),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -396,7 +506,7 @@ class ScheduleResultCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Платформа ${result.platform}',
+                        '${S.of(context).schedule_table_platform} ${result.platform}',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
@@ -410,15 +520,16 @@ class ScheduleResultCard extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(String status) {
+  Color _getStatusColor(String status, BuildContext context) {
+    final s = S.of(context);
     switch (status) {
-      case 'Вчасно':
+      case var t when t == s.status_on_time:
         return Colors.green;
-      case 'Затримка':
+      case var t when t == s.status_delayed:
         return Colors.red;
-      case 'Відправлено':
+      case var t when t == s.status_departed:
         return Colors.blue;
-      case 'Скасовано':
+      case var t when t == s.status_cancelled:
         return Colors.grey;
       default:
         return Colors.orange;

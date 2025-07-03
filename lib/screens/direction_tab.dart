@@ -4,6 +4,7 @@ import '../models/train_result.dart';
 import '../widgets/train_result_card.dart';
 import '../widgets/station_autocomplete_field.dart';
 import '../widgets/multi_select_train_type_field.dart';
+import '../generated/l10n.dart';
 
 class DirectionTab extends StatefulWidget {
   final SettingsProvider settingsProvider;
@@ -18,7 +19,7 @@ class _DirectionTabState extends State<DirectionTab> {
   String? _fromStation;
   String? _toStation;
   DateTime _selectedDate = DateTime.now();
-  List<String> _trainTypes = ['Усі'];
+  List<String> _trainTypes = ['train_type_all'];
   List<TrainResult> _results = [];
   bool _isLoading = false;
 
@@ -42,6 +43,16 @@ class _DirectionTabState extends State<DirectionTab> {
     'Суми',
     'Чернігів',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   Future<void> _pickDate() async {
     final DateTime? picked = await showDatePicker(
@@ -74,14 +85,14 @@ class _DirectionTabState extends State<DirectionTab> {
   void _searchTrains() async {
     if (_fromStation == null || _toStation == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Оберіть станції відправлення та прибуття')),
+        SnackBar(content: Text(S.of(context).error_select_stations)),
       );
       return;
     }
 
     if (_fromStation == _toStation) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Станції відправлення та прибуття не можуть збігатися')),
+        SnackBar(content: Text(S.of(context).error_same_stations)),
       );
       return;
     }
@@ -186,7 +197,7 @@ class _DirectionTabState extends State<DirectionTab> {
                         child: StationAutocompleteField(
                           value: _fromStation,
                           onChanged: (value) => setState(() => _fromStation = value),
-                          labelText: 'Станція відправлення',
+                          labelText: S.of(context).from_station,
                           prefixIcon: Icons.departure_board,
                           stations: _stations,
                         ),
@@ -194,21 +205,23 @@ class _DirectionTabState extends State<DirectionTab> {
                       const SizedBox(width: 8),
                       IconButton(
                         icon: const Icon(Icons.swap_horiz),
+                        tooltip: S.of(context).swap_stations,
                         onPressed: () {
                           setState(() {
                             final temp = _fromStation;
                             _fromStation = _toStation;
                             _toStation = temp;
+                            _results = [];
                           });
                         },
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   StationAutocompleteField(
                     value: _toStation,
                     onChanged: (value) => setState(() => _toStation = value),
-                    labelText: 'Станція прибуття',
+                    labelText: S.of(context).to_station,
                     prefixIcon: Icons.location_on,
                     stations: _stations,
                   ),
@@ -223,10 +236,10 @@ class _DirectionTabState extends State<DirectionTab> {
                                 onTap: _pickDate,
                                 borderRadius: BorderRadius.circular(8),
                                 child: InputDecorator(
-                                  decoration: const InputDecoration(
-                                    labelText: 'Дата',
-                                    prefixIcon: Icon(Icons.calendar_today),
-                                    border: OutlineInputBorder(),
+                                  decoration: InputDecoration(
+                                    labelText: S.of(context).date,
+                                    prefixIcon: const Icon(Icons.calendar_today),
+                                    border: const OutlineInputBorder(),
                                     filled: true,
                                   ),
                                   child: Text(
@@ -240,7 +253,7 @@ class _DirectionTabState extends State<DirectionTab> {
                               child: MultiSelectTrainTypeField(
                                 selectedTypes: _trainTypes,
                                 onChanged: (value) => setState(() => _trainTypes = value),
-                                labelText: 'Тип поїзда',
+                                labelText: S.of(context).train_type,
                                 prefixIcon: Icons.train,
                               ),
                             ),
@@ -253,10 +266,10 @@ class _DirectionTabState extends State<DirectionTab> {
                               onTap: _pickDate,
                               borderRadius: BorderRadius.circular(8),
                               child: InputDecorator(
-                                decoration: const InputDecoration(
-                                  labelText: 'Дата',
-                                  prefixIcon: Icon(Icons.calendar_today),
-                                  border: OutlineInputBorder(),
+                                decoration: InputDecoration(
+                                  labelText: S.of(context).date,
+                                  prefixIcon: const Icon(Icons.calendar_today),
+                                  border: const OutlineInputBorder(),
                                   filled: true,
                                 ),
                                 child: Text(
@@ -268,7 +281,7 @@ class _DirectionTabState extends State<DirectionTab> {
                             MultiSelectTrainTypeField(
                               selectedTypes: _trainTypes,
                               onChanged: (value) => setState(() => _trainTypes = value),
-                              labelText: 'Тип поїзда',
+                              labelText: S.of(context).train_type,
                               prefixIcon: Icons.train,
                             ),
                           ],
@@ -286,7 +299,7 @@ class _DirectionTabState extends State<DirectionTab> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.search),
-                    label: Text(_isLoading ? 'Пошук...' : 'Знайти поїзди'),
+                    label: Text(_isLoading ? S.of(context).search + '...' : S.of(context).find_trains),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                     ),
@@ -308,16 +321,16 @@ class _DirectionTabState extends State<DirectionTab> {
               ),
             ),
           if (_results.isEmpty && !_isLoading)
-            const Expanded(
+            Expanded(
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.search, size: 64, color: Colors.grey),
-                    SizedBox(height: 16),
+                    const Icon(Icons.search, size: 64, color: Colors.grey),
+                    const SizedBox(height: 16),
                     Text(
-                      'Виберіть станції та натисніть "Знайти поїзди"',
-                      style: TextStyle(color: Colors.grey),
+                      S.of(context).empty_direction_search,
+                      style: const TextStyle(color: Colors.grey),
                       textAlign: TextAlign.center,
                     ),
                   ],

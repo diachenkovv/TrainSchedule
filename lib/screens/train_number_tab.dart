@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../providers/settings_provider.dart';
 import '../models/train_result.dart';
+import '../generated/l10n.dart';
 
 class TrainNumberTab extends StatefulWidget {
   final SettingsProvider settingsProvider;
@@ -54,7 +55,7 @@ class _TrainNumberTabState extends State<TrainNumberTab> {
   void _searchTrain() async {
     if (_trainNumberController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Введіть номер поїзда')),
+        SnackBar(content: Text(S.of(context).error_enter_train_number)),
       );
       return;
     }
@@ -156,10 +157,10 @@ class _TrainNumberTabState extends State<TrainNumberTab> {
                 children: [
                   TextField(
                     controller: _trainNumberController,
-                    decoration: const InputDecoration(
-                      labelText: 'Номер поїзда',
-                      prefixIcon: Icon(Icons.train),
-                      hintText: 'Наприклад: 091К',
+                    decoration: InputDecoration(
+                      labelText: S.of(context).train_number,
+                      prefixIcon: const Icon(Icons.train),
+                      hintText: S.of(context).train_number_hint,
                     ),
                     textCapitalization: TextCapitalization.characters,
                   ),
@@ -167,12 +168,13 @@ class _TrainNumberTabState extends State<TrainNumberTab> {
                   InkWell(
                     onTap: _pickDate,
                     borderRadius: BorderRadius.circular(8),
-                    child: InputDecorator(                          decoration: const InputDecoration(
-                            labelText: 'Дата',
-                            prefixIcon: Icon(Icons.calendar_today),
-                            border: OutlineInputBorder(),
-                            filled: true,
-                          ),
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: S.of(context).date,
+                        prefixIcon: const Icon(Icons.calendar_today),
+                        border: const OutlineInputBorder(),
+                        filled: true,
+                      ),
                       child: Text(
                         '${_selectedDate.day.toString().padLeft(2, '0')}.${_selectedDate.month.toString().padLeft(2, '0')}.${_selectedDate.year}',
                       ),
@@ -188,7 +190,7 @@ class _TrainNumberTabState extends State<TrainNumberTab> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.search),
-                    label: Text(_isLoading ? 'Пошук...' : 'Знайти поїзд'),
+                    label: Text(_isLoading ? S.of(context).search + '...' : S.of(context).find_trains),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                     ),
@@ -218,7 +220,7 @@ class _TrainNumberTabState extends State<TrainNumberTab> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Text(
-                                'Поїзд ${_trainInfo!.trainNumber}',
+                                '${S.of(context).train_table_train} ${_trainInfo!.trainNumber}',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -244,7 +246,7 @@ class _TrainNumberTabState extends State<TrainNumberTab> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Маршрут: ${_trainInfo!.route}',
+                          S.of(context).train_table_route + ': ${_trainInfo!.route}',
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w500,
                           ),
@@ -257,23 +259,23 @@ class _TrainNumberTabState extends State<TrainNumberTab> {
                             color: Theme.of(context).colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Row(
+                          child: Row(
                             children: [
                               Expanded(
                                 flex: 3,
-                                child: Text('Станція', style: TextStyle(fontWeight: FontWeight.bold)),
+                                child: Text(S.of(context).train_table_station, style: TextStyle(fontWeight: FontWeight.bold)),
                               ),
                               Expanded(
-                                child: Text('Приб.', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                                child: Text(S.of(context).train_table_arrival, style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                               ),
                               Expanded(
-                                child: Text('Відпр.', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                                child: Text(S.of(context).train_table_departure, style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                               ),
                               Expanded(
-                                child: Text('Стоянка', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                                child: Text(S.of(context).train_table_stop, style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                               ),
                               Expanded(
-                                child: Text('Платф.', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                                child: Text(S.of(context).train_table_platform, style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                               ),
                             ],
                           ),
@@ -338,7 +340,7 @@ class _TrainNumberTabState extends State<TrainNumberTab> {
                                   ),
                                   Expanded(
                                     child: Text(
-                                      stop.stayTime > 0 ? '${stop.stayTime} хв' : '—',
+                                      stop.stayTime > 0 ? '${stop.stayTime} ${S.of(context).duration_minute}' : '—',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         color: stop.stayTime == 0 ? Colors.grey : null,
@@ -363,16 +365,16 @@ class _TrainNumberTabState extends State<TrainNumberTab> {
               ),
             ),
           if (_trainInfo == null && !_isLoading)
-            const Expanded(
+            Expanded(
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.train, size: 64, color: Colors.grey),
-                    SizedBox(height: 16),
+                    const Icon(Icons.train, size: 64, color: Colors.grey),
+                    const SizedBox(height: 16),
                     Text(
-                      'Введіть номер поїзда та натисніть "Знайти поїзд"',
-                      style: TextStyle(color: Colors.grey),
+                      S.of(context).empty_train_search,
+                      style: const TextStyle(color: Colors.grey),
                       textAlign: TextAlign.center,
                     ),
                   ],

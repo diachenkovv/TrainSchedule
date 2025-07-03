@@ -5,6 +5,7 @@ import '../screens/direction_tab.dart';
 import '../screens/schedule_tab.dart';
 import '../screens/train_number_tab.dart';
 import '../screens/settings_screen.dart';
+import '../generated/l10n.dart';
 
 class HomeScreen extends StatefulWidget {
   final ThemeProvider themeProvider;
@@ -39,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Розклад поїздів УЗ'),
+        title: Text(S.of(context).title),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -56,18 +57,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ],
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
+          tabs: [
             Tab(
-              icon: Icon(Icons.route),
-              text: 'Напрямок',
+              icon: const Icon(Icons.route),
+              text: S.of(context).tab_direction,
             ),
             Tab(
-              icon: Icon(Icons.schedule),
-              text: 'Табло',
+              icon: const Icon(Icons.schedule),
+              text: S.of(context).tab_board,
             ),
             Tab(
-              icon: Icon(Icons.train),
-              text: 'Номер поїзда',
+              icon: const Icon(Icons.train),
+              text: S.of(context).tab_train_number,
             ),
           ],
         ),

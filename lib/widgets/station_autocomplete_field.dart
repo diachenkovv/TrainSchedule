@@ -24,7 +24,6 @@ class StationAutocompleteField extends StatelessWidget {
         if (textEditingValue.text == '') {
           return const Iterable<String>.empty();
         }
-        
         final query = textEditingValue.text.toLowerCase();
         return stations.where((String option) {
           return option.toLowerCase().contains(query);
